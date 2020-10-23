@@ -1,0 +1,13 @@
+diff --git a/module.c b/module.c
+index 0c8233a..e9eea35 100644
+--- a/module.c
++++ b/module.c
+@@ -125,7 +125,7 @@ static int sce_to_tai_module_info(SceUID pid, void *sceinfo, tai_module_info_t *
+   }
+ 
+   info = (char *)sceinfo;
+-  if (fw_version >= 0x3600000) {
++  if (fw_version <= 0x3600000) {
+     if (pid == KERNEL_PID) {
+       taiinfo->modid = *(SceUID *)(info + 0xC);
+     } else {

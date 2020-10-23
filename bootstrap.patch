@@ -1,0 +1,76 @@
+diff --git a/bootstrap/bootstrap.c b/bootstrap/bootstrap.c
+index 94e9808..f32a9bf 100644
+--- a/bootstrap/bootstrap.c
++++ b/bootstrap/bootstrap.c
+@@ -30,6 +30,7 @@
+ #define TAIHEN_SKPRX_FILE "ur0:tai/taihen.skprx"
+ #define HENKAKU_SUPRX_FILE "ur0:tai/henkaku.suprx"
+ #define HENKAKU_SKPRX_FILE "ur0:tai/henkaku.skprx"
++#define GAMESD_SKPRX_FILE "ur0:tai/gamesd.skprx"
+ 
+ #undef LOG
+ #if RELEASE
+@@ -58,6 +59,7 @@ const char taihen_config_header[] =
+ const char taihen_config[] = 
+ 	"*KERNEL\n"
+ 	"# henkaku.skprx is hard-coded to load and is not listed here\n"
++	GAMESD_SKPRX_FILE "\n"
+ 	"*main\n"
+ 	"# main is a special titleid for SceShell\n"
+ 	HENKAKU_SUPRX_FILE "\n"
+@@ -434,9 +436,11 @@ int install_taihen(const char *pkg_url_prefix) {
+ 	sceIoRemove(TAIHEN_SKPRX_FILE);
+ 	sceIoRemove(HENKAKU_SKPRX_FILE);
+ 	sceIoRemove(HENKAKU_SUPRX_FILE);
++	sceIoRemove(GAMESD_SKPRX_FILE);
+ 	GET_FILE("taihen.skprx");
+ 	GET_FILE("henkaku.skprx");
+ 	GET_FILE("henkaku.suprx");
++	GET_FILE("gamesd.skprx");
+ 
+ 	if (!exists(TAIHEN_CONFIG_FILE)) {
+ 		mkdirs("ux0:tai");
+@@ -447,7 +451,7 @@ int install_taihen(const char *pkg_url_prefix) {
+ 		write_taihen_config(TAIHEN_RECOVERY_CONFIG_FILE, 1);
+ 	}
+ 
+-	if (exists(TAIHEN_SKPRX_FILE) && exists(HENKAKU_SKPRX_FILE) && exists(HENKAKU_SUPRX_FILE)) {
++	if (exists(TAIHEN_SKPRX_FILE) && exists(HENKAKU_SKPRX_FILE) && exists(HENKAKU_SUPRX_FILE) && exists(GAMESD_SKPRX_FILE)) {
+ 		return 0;
+ 	} else {
+ 		return -1;
+@@ -590,6 +594,9 @@ int verify_taihen(void) {
+ 		crc = crc32_file(HENKAKU_SUPRX_FILE);
+ 		DRAWF("henkaku.suprx CRC32: 0x%08X\n", crc);
+ 		if (crc != HENKAKU_USER_CRC32) return -1;
++		crc = crc32_file(GAMESD_SKPRX_FILE);
++		DRAWF("gamesd.skprx CRC32: 0x%08X\n", crc);
++		if (crc != 0x029DA7C9) return -1; // hardcoded
+ 	}
+ 	return 1;
+ }
+@@ -725,6 +732,7 @@ int module_start(SceSize argc, const void *args) {
+ 			sceIoRemove("ux0:tai/taihen.skprx");
+ 			sceIoRemove(CONFIG_PATH);
+ 			sceIoRemove(OLD_CONFIG_PATH);
++			sceIoRemove(GAMESD_SKPRX_FILE);
+ 			sceIoRemove(HENKAKU_SUPRX_FILE);
+ 			sceIoRemove(HENKAKU_SKPRX_FILE);
+ 			sceIoRemove(TAIHEN_SKPRX_FILE);
+@@ -746,7 +754,7 @@ int module_start(SceSize argc, const void *args) {
+ 		// check if we actually need to install the package
+ 		if (TAIHEN_CRC32 == 0 || (crc[0] = crc32_file(TAIHEN_SKPRX_FILE)) != TAIHEN_CRC32 || 
+ 			  (crc[1] = crc32_file(HENKAKU_SUPRX_FILE)) != HENKAKU_USER_CRC32 ||
+-			  (crc[2] = crc32_file(HENKAKU_SKPRX_FILE)) != HENKAKU_CRC32) {
++			  (crc[2] = crc32_file(HENKAKU_SKPRX_FILE)) != HENKAKU_CRC32) { // TODO: gamesd check
+ 			DRAWF("taihen.skprx CRC32:%x, latest:%x\n", crc[0], TAIHEN_CRC32);
+ 			if (crc[1]) DRAWF("henkaku.suprx CRC32:%x, latest:%x\n", crc[1], HENKAKU_USER_CRC32);
+ 			if (crc[2]) DRAWF("henkaku.skprx CRC32:%x, latest:%x\n", crc[2], HENKAKU_CRC32);
+@@ -801,6 +809,7 @@ int module_start(SceSize argc, const void *args) {
+ 			sceIoRemove(TAIHEN_SKPRX_FILE);
+ 			sceIoRemove(HENKAKU_SKPRX_FILE);
+ 			sceIoRemove(HENKAKU_SUPRX_FILE);
++			sceIoRemove(GAMESD_SKPRX_FILE);
+ 		} else {
+ 			break;
+ 		}

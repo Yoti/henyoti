@@ -1,0 +1,205 @@
+diff --git a/bootstrap/bootstrap.c b/bootstrap/bootstrap.c
+index 94e9808..64807fe 100644
+--- a/bootstrap/bootstrap.c
++++ b/bootstrap/bootstrap.c
+@@ -546,7 +546,7 @@ int update_taihen_config(void) {
+ 	int state[2] = {0};
+ 	int ret;
+ 
+-	if ((ret = search_file_with_fsms(TAIHEN_CONFIG_FILE, 2, fsm, state)) >= 0) {
++/*	if ((ret = search_file_with_fsms(TAIHEN_CONFIG_FILE, 2, fsm, state)) >= 0) {
+ 		if (state[0] >= 99) { // found null char
+ 			DRAWF("ux0:tai/config.txt is corrupted, rewriting it\n");
+ 			write_taihen_config(TAIHEN_CONFIG_FILE, 0);
+@@ -558,7 +558,7 @@ int update_taihen_config(void) {
+ 			sceIoWrite(fd, taihen_config, sizeof(taihen_config) - 1);
+ 			sceIoClose(fd);
+ 		}
+-	}
++	}*/ // TODO: proper fix
+ 
+ 	if (exists("ux0:app/MLCL00001/henkaku.suprx")) {
+ 		DRAWF("Removing old henkaku.suprx\n");
+@@ -768,7 +768,7 @@ int module_start(SceSize argc, const void *args) {
+ 				if (VITASHELL_CRC32 == 0 || (crc[0] = crc32_file("ux0:app/MLCL00001/eboot.bin")) != VITASHELL_CRC32) {
+ 					DRAWF("molecularShell CRC32:%x, latest:%x\n", crc[0], VITASHELL_CRC32);
+ 					DRAWF("Getting latest version...\n");
+-					ret = install_pkg(PKG_URL_PREFIX);
++					/*ret = */install_pkg(PKG_URL_PREFIX); // TODO: proper fix
+ 				} else {
+ 					DRAWF("molecularShell already installed and is the latest version\n");
+ 					DRAWF(force_reinstall);
+diff --git a/plugin/henkaku.h b/plugin/henkaku.h
+index 73a1ea5..e4dba75 100644
+--- a/plugin/henkaku.h
++++ b/plugin/henkaku.h
+@@ -37,6 +37,6 @@ typedef struct {
+ #define HENKAKU_CONFIG_MAGIC (0x4C434C4D)
+ #define CONFIG_PATH "ur0:tai/henkaku_config.bin"
+ #define OLD_CONFIG_PATH "ux0:temp/app_work/MLCL00001/rec/config.bin"
+-#define SPOOF_VERSION (0x3650000)
++#define SPOOF_VERSION (0x3730000)
+ 
+ #endif // HENKAKU_HEADER
+diff --git a/plugin/language.h b/plugin/language.h
+index c86d437..282cfa6 100644
+--- a/plugin/language.h
++++ b/plugin/language.h
+@@ -183,24 +183,24 @@ language_container_t language_portuguese_pt = {
+   L"Falha ao montar ux0. O cartão de memória está inserido?",
+ };
+ 
+-// by Tenek & MuskratDesman & dec0dOS
++// by Yoti
+ language_container_t language_russian = {
+   L"Настройки HENkaku",
+-  L"Включить спуфинг PSN",
+-  L"Включить небезопасные приложения",
+-  L"Небезопасные приложения могут повредить ваше устройство навсегда, если они используются неправильно, неправильно настроены или вредоносны.\nПожалуйста, проявляйте осторожность при их установке.",
+-  L"Включить подмену версии",
+-  L"Поддельная версия",
+-  L"Поведение кнопки ○",
+-  L"Ввод",
++  L"Подменять версию ПО для PSN",
++  L"Разрешить небезопасные хоумбрю",
++  L"Небезопасные хоумбрю могут необратимо повредить систему, если они используются не по назначению или содержат вредоносный код.\nУстанавливайте и используйте таковые на свой страх и риск.",
++  L"Подменять версию ПО для игр",
++  L"Указать версию для подмены",
++  L"Функция кнопки ○",
++  L"Выбор",
+   L"Отмена",
+-  L"Перезагрузить taiHEN config.txt",
+-  L"taiHEN config.txt был успешно перезагружен.",
+-  L"Перезапустить устройство",
++  L"Перечитать taiHEN config.txt",
++  L"taiHEN config.txt был успешно перечитан.",
++  L"Перезагрузить систему",
+   L"Загрузчик контента",
+   L"Отвязать карту памяти",
+-  L"ux0:id.dat был удален. Эта карта памяти теперь может быть использована на любой PSVita.",
+-  L"Ошибка при монтировании ux0. Проверьте, вставлена ли карта памяти",
++  L"Файл ux0:id.dat был удалён. Теперь эту карту памяти можно использовать на любой другой PS Vita (TV).",
++  L"Ошибка при обращении к разделу ux0. Проверьте, вставлена ли карта памяти.",
+ };
+ 
+ // by TriggerHavoc
+diff --git a/plugin/user.c b/plugin/user.c
+index debedfc..750afeb 100644
+--- a/plugin/user.c
++++ b/plugin/user.c
+@@ -10,9 +10,8 @@
+ #include "language.h"
+ #include "../build/version.c"
+ 
+-#define DISPLAY_VERSION (0x3600000)
+-
+ int _vshIoMount(int id, const char *path, int permissions, void *opt);
++int _vshSblGetSystemSwVersion(SceKernelFwInfo *info);
+ 
+ extern unsigned char _binary_system_settings_xml_start;
+ extern unsigned char _binary_system_settings_xml_size;
+@@ -26,15 +25,20 @@ static SceUID g_hooks[15];
+ static tai_hook_ref_t g_sceKernelGetSystemSwVersion_SceSettings_hook;
+ static int sceKernelGetSystemSwVersion_SceSettings_patched(SceKernelFwInfo *info) {
+   int ret;
+-  int ver_major;
+-  int ver_minor;
++  SceKernelFwInfo real_info;
+   ret = TAI_CONTINUE(int, g_sceKernelGetSystemSwVersion_SceSettings_hook, info);
+-  ver_major = ((DISPLAY_VERSION >> 24) & 0xF) + 10 * (DISPLAY_VERSION >> 28);
+-  ver_minor = ((DISPLAY_VERSION >> 16) & 0xF) + 10 * ((DISPLAY_VERSION >> 20) & 0xF);
++  sceClibMemset(&real_info, 0, sizeof(SceKernelFwInfo));
++  real_info.size = sizeof(SceKernelFwInfo);
++  _vshSblGetSystemSwVersion(&real_info);
+   if (BETA_RELEASE) {
+-    sceClibSnprintf(info->versionString, 16, "%d.%02d \xE5\xA4\x89\xE9\x9D\xA9-%d\xCE\xB2%d", ver_major, ver_minor, HENKAKU_RELEASE, BETA_RELEASE);
++    //sceClibSnprintf(info->versionString, 16, "%s \xE5\xA4\x89\xE9\x9D\xA9-%d\xCE\xB2%d", real_info.versionString, HENKAKU_RELEASE, BETA_RELEASE);
++    sceClibSnprintf(info->versionString, 19, "%s \xE3\x83\xA8\xE3\x83\x86\xE3\x82\xA3-%d\xCE\xB2%d", real_info.versionString, HENKAKU_RELEASE, BETA_RELEASE);
++  } else if (HENKAKU_RELEASE > 1) {
++    //sceClibSnprintf(info->versionString, 16, "%s \xE5\xA4\x89\xE9\x9D\xA9-%d", real_info.versionString, HENKAKU_RELEASE);
++    sceClibSnprintf(info->versionString, 19, "%s \xE3\x83\xA8\xE3\x83\x86\xE3\x82\xA3-%d", real_info.versionString, HENKAKU_RELEASE);
+   } else {
+-    sceClibSnprintf(info->versionString, 16, "%d.%02d \xE5\xA4\x89\xE9\x9D\xA9-%d", ver_major, ver_minor, HENKAKU_RELEASE);
++    //sceClibSnprintf(info->versionString, 16, "%s \xE5\xA4\x89\xE9\x9D\xA9", real_info.versionString);
++    sceClibSnprintf(info->versionString, 19, "%s \xE3\x83\xA8\xE3\x83\x86\xE3\x82\xA3", real_info.versionString);
+   }
+   return ret;
+ }
+@@ -440,17 +444,59 @@ int module_start(SceSize argc, const void *args) {
+       // version and retail/dex/test unit, this should allow us to specify different 
+       // offsets.
+       switch (info.module_nid) {
++        case 0x8978D25D: { // retail 3.55 SceShell thanks to Yoti for offsets
++          g_hooks[3] = taiHookFunctionOffset(&g_update_check_hook,
++                                             info.modid,
++                                             0,         // segidx
++                                             0x363968,  // offset
++                                             1,         // thumb
++                                             update_check_patched);
++          g_hooks[4] = taiHookFunctionOffset(&g_game_update_check_hook,
++                                             info.modid,
++                                             0,         // segidx
++                                             0x37BA5A,  // offset
++                                             1,         // thumb
++                                             game_update_check_patched);
++          g_hooks[5] = taiHookFunctionOffset(&g_passphrase_decrypt_hook,
++                                             info.modid,
++                                             0,         // segidx
++                                             0x324DB0,  // offset
++                                             1,         // thumb
++                                             passphrase_decrypt_patched);
++          break;
++        }
++        case 0x9F367BFC: { // retail 3.57 SceShell thanks to Yoti for offsets
++          g_hooks[3] = taiHookFunctionOffset(&g_update_check_hook,
++                                             info.modid,
++                                             0,         // segidx
++                                             0x3637CC,  // offset
++                                             1,         // thumb
++                                             update_check_patched);
++          g_hooks[4] = taiHookFunctionOffset(&g_game_update_check_hook,
++                                             info.modid,
++                                             0,         // segidx
++                                             0x37B8BE,  // offset
++                                             1,         // thumb
++                                             game_update_check_patched);
++          g_hooks[5] = taiHookFunctionOffset(&g_passphrase_decrypt_hook,
++                                             info.modid,
++                                             0,         // segidx
++                                             0x324C14,  // offset
++                                             1,         // thumb
++                                             passphrase_decrypt_patched);
++          break;
++        }
+         case 0x0552F692: { // retail 3.60 SceShell
+           g_hooks[3] = taiHookFunctionOffset(&g_update_check_hook, 
+                                              info.modid, 
+                                              0,         // segidx
+-                                             0x363de8,  // offset
++                                             0x363DE8,  // offset
+                                              1,         // thumb
+                                              update_check_patched);
+           g_hooks[4] = taiHookFunctionOffset(&g_game_update_check_hook, 
+                                              info.modid, 
+                                              0,         // segidx
+-                                             0x37beda,  // offset
++                                             0x37BEDA,  // offset
+                                              1,         // thumb
+                                              game_update_check_patched);
+           g_hooks[5] = taiHookFunctionOffset(&g_passphrase_decrypt_hook, 
+@@ -486,13 +532,13 @@ int module_start(SceSize argc, const void *args) {
+           g_hooks[3] = taiHookFunctionOffset(&g_update_check_hook, 
+                                              info.modid, 
+                                              0,         // segidx
+-                                             0x12c882,  // offset
++                                             0x12C882,  // offset
+                                              1,         // thumb
+                                              update_check_patched);
+           g_hooks[4] = taiHookFunctionOffset(&g_game_update_check_hook, 
+                                              info.modid, 
+                                              0,         // segidx
+-                                             0x36df3e,  // offset
++                                             0x36DF3E,  // offset
+                                              1,         // thumb
+                                              game_update_check_patched);
+           g_hooks[5] = taiHookFunctionOffset(&g_passphrase_decrypt_hook, 
