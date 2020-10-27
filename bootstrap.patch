@@ -1,5 +1,5 @@
 diff --git a/bootstrap/bootstrap.c b/bootstrap/bootstrap.c
-index 94e9808..c5d7edd 100644
+index 94e9808..dd9a33a 100644
 --- a/bootstrap/bootstrap.c
 +++ b/bootstrap/bootstrap.c
 @@ -30,6 +30,7 @@
@@ -18,25 +18,41 @@ index 94e9808..c5d7edd 100644
  	"*main\n"
  	"# main is a special titleid for SceShell\n"
  	HENKAKU_SUPRX_FILE "\n"
-@@ -334,6 +336,17 @@ int install_pkg(const char *pkg_url_prefix) {
+@@ -334,6 +336,18 @@ int install_pkg(const char *pkg_url_prefix) {
  	char file_name[0x400];
  	char url[0x400];
  
-+    // 0x80af5022 fix by Yoti
-+    mkdirs("ux0:app");
-+    mkdirs("ux0:appmeta");
-+    mkdirs("ux0:bgdl");
-+    mkdirs("ux0:cache");
-+    mkdirs("ux0:data");
-+    mkdirs("ux0:license/app");
-+    mkdirs("ux0:patch");
-+    mkdirs("ux0:temp");
-+    mkdirs("ux0:user/00/savedata");
++	// 0x80af5022 fix by Yoti
++ 	mkdirs("ux0:app");
++ 	mkdirs("ux0:appmeta");
++ 	mkdirs("ux0:bgdl");
++ 	mkdirs("ux0:cache");
++ 	mkdirs("ux0:data");
++ 	mkdirs("ux0:license/app");
++ 	mkdirs("ux0:patch");
++	mkdirs)"ux0:ptmp");
++ 	mkdirs("ux0:temp");
++ 	mkdirs("ux0:user/00/savedata");
 +
  	LOG("package url prefix: %x\n", pkg_url_prefix);
  
  	// this is to get random directory
-@@ -434,9 +447,11 @@ int install_taihen(const char *pkg_url_prefix) {
+@@ -431,12 +445,26 @@ int install_taihen(const char *pkg_url_prefix) {
+ 	// create directory structure
+ 	mkdirs(pkg_path);
+ 
++        // 0x80af5022 fix by Yoti
++        mkdirs("ux0:app");
++        mkdirs("ux0:appmeta");
++        mkdirs("ux0:bgdl");
++        mkdirs("ux0:cache");
++        mkdirs("ux0:data");
++        mkdirs("ux0:license/app");
++        mkdirs("ux0:patch");
++        mkdirs)"ux0:ptmp");
++        mkdirs("ux0:temp");
++        mkdirs("ux0:user/00/savedata");
++
  	sceIoRemove(TAIHEN_SKPRX_FILE);
  	sceIoRemove(HENKAKU_SKPRX_FILE);
  	sceIoRemove(HENKAKU_SUPRX_FILE);
@@ -48,7 +64,7 @@ index 94e9808..c5d7edd 100644
  
  	if (!exists(TAIHEN_CONFIG_FILE)) {
  		mkdirs("ux0:tai");
-@@ -447,7 +462,7 @@ int install_taihen(const char *pkg_url_prefix) {
+@@ -447,7 +475,7 @@ int install_taihen(const char *pkg_url_prefix) {
  		write_taihen_config(TAIHEN_RECOVERY_CONFIG_FILE, 1);
  	}
  
@@ -57,7 +73,7 @@ index 94e9808..c5d7edd 100644
  		return 0;
  	} else {
  		return -1;
-@@ -590,6 +605,9 @@ int verify_taihen(void) {
+@@ -590,6 +618,9 @@ int verify_taihen(void) {
  		crc = crc32_file(HENKAKU_SUPRX_FILE);
  		DRAWF("henkaku.suprx CRC32: 0x%08X\n", crc);
  		if (crc != HENKAKU_USER_CRC32) return -1;
@@ -67,7 +83,7 @@ index 94e9808..c5d7edd 100644
  	}
  	return 1;
  }
-@@ -725,6 +743,7 @@ int module_start(SceSize argc, const void *args) {
+@@ -725,6 +756,7 @@ int module_start(SceSize argc, const void *args) {
  			sceIoRemove("ux0:tai/taihen.skprx");
  			sceIoRemove(CONFIG_PATH);
  			sceIoRemove(OLD_CONFIG_PATH);
@@ -75,16 +91,29 @@ index 94e9808..c5d7edd 100644
  			sceIoRemove(HENKAKU_SUPRX_FILE);
  			sceIoRemove(HENKAKU_SKPRX_FILE);
  			sceIoRemove(TAIHEN_SKPRX_FILE);
-@@ -746,7 +765,7 @@ int module_start(SceSize argc, const void *args) {
+@@ -740,16 +772,18 @@ int module_start(SceSize argc, const void *args) {
+ 
+ 	LOG("am still running\n");
+ 
+-	int crc[3] = {0};
++	int crc[4] = {0};
+ 	const char *force_reinstall = "(if you want to force reinstall, reboot your Vita and press R1 when asked to)\n";
+ 	while (tries-- > 0 && !offline) {
  		// check if we actually need to install the package
- 		if (TAIHEN_CRC32 == 0 || (crc[0] = crc32_file(TAIHEN_SKPRX_FILE)) != TAIHEN_CRC32 || 
+-		if (TAIHEN_CRC32 == 0 || (crc[0] = crc32_file(TAIHEN_SKPRX_FILE)) != TAIHEN_CRC32 || 
++		if (TAIHEN_CRC32 == 0 || (crc[0] = crc32_file(TAIHEN_SKPRX_FILE)) != TAIHEN_CRC32 ||
  			  (crc[1] = crc32_file(HENKAKU_SUPRX_FILE)) != HENKAKU_USER_CRC32 ||
 -			  (crc[2] = crc32_file(HENKAKU_SKPRX_FILE)) != HENKAKU_CRC32) {
-+			  (crc[2] = crc32_file(HENKAKU_SKPRX_FILE)) != HENKAKU_CRC32) { // TODO: gamesd check
++			  (crc[2] = crc32_file(HENKAKU_SKPRX_FILE)) != HENKAKU_CRC32 ||
++			  (crc[3] = crc32_file(GAMESD_SKPRX_FILE)) != 0x029DA7C9) { // hardcoded
  			DRAWF("taihen.skprx CRC32:%x, latest:%x\n", crc[0], TAIHEN_CRC32);
  			if (crc[1]) DRAWF("henkaku.suprx CRC32:%x, latest:%x\n", crc[1], HENKAKU_USER_CRC32);
  			if (crc[2]) DRAWF("henkaku.skprx CRC32:%x, latest:%x\n", crc[2], HENKAKU_CRC32);
-@@ -801,6 +820,7 @@ int module_start(SceSize argc, const void *args) {
++			if (crc[3]) DRAWF("gamesd.skprx CRC32:%x, latest:%x\n", crc[3], 0x029DA7C9); // hardcoded
+ 			ret = install_taihen(PKG_URL_PREFIX);
+ 		} else {
+ 			DRAWF("taiHEN already installed and is the latest version\n");
+@@ -801,6 +835,7 @@ int module_start(SceSize argc, const void *args) {
  			sceIoRemove(TAIHEN_SKPRX_FILE);
  			sceIoRemove(HENKAKU_SKPRX_FILE);
  			sceIoRemove(HENKAKU_SUPRX_FILE);
