@@ -1,5 +1,5 @@
 diff --git a/bootstrap/bootstrap.c b/bootstrap/bootstrap.c
-index 94e9808..dd9a33a 100644
+index 94e9808..890c134 100644
 --- a/bootstrap/bootstrap.c
 +++ b/bootstrap/bootstrap.c
 @@ -30,6 +30,7 @@
@@ -23,16 +23,16 @@ index 94e9808..dd9a33a 100644
  	char url[0x400];
  
 +	// 0x80af5022 fix by Yoti
-+ 	mkdirs("ux0:app");
-+ 	mkdirs("ux0:appmeta");
-+ 	mkdirs("ux0:bgdl");
-+ 	mkdirs("ux0:cache");
-+ 	mkdirs("ux0:data");
-+ 	mkdirs("ux0:license/app");
-+ 	mkdirs("ux0:patch");
-+	mkdirs)"ux0:ptmp");
-+ 	mkdirs("ux0:temp");
-+ 	mkdirs("ux0:user/00/savedata");
++	mkdirs("ux0:app");
++	mkdirs("ux0:appmeta");
++	mkdirs("ux0:bgdl");
++	mkdirs("ux0:cache");
++	mkdirs("ux0:data");
++	mkdirs("ux0:license/app");
++	mkdirs("ux0:patch");
++	mkdirs("ux0:ptmp");
++	mkdirs("ux0:temp");
++	mkdirs("ux0:user/00/savedata");
 +
  	LOG("package url prefix: %x\n", pkg_url_prefix);
  
@@ -41,17 +41,17 @@ index 94e9808..dd9a33a 100644
  	// create directory structure
  	mkdirs(pkg_path);
  
-+        // 0x80af5022 fix by Yoti
-+        mkdirs("ux0:app");
-+        mkdirs("ux0:appmeta");
-+        mkdirs("ux0:bgdl");
-+        mkdirs("ux0:cache");
-+        mkdirs("ux0:data");
-+        mkdirs("ux0:license/app");
-+        mkdirs("ux0:patch");
-+        mkdirs)"ux0:ptmp");
-+        mkdirs("ux0:temp");
-+        mkdirs("ux0:user/00/savedata");
++	// 0x80af5022 fix by Yoti
++	mkdirs("ux0:app");
++	mkdirs("ux0:appmeta");
++	mkdirs("ux0:bgdl");
++	mkdirs("ux0:cache");
++	mkdirs("ux0:data");
++	mkdirs("ux0:license/app");
++	mkdirs("ux0:patch");
++	mkdirs("ux0:ptmp");
++	mkdirs("ux0:temp");
++	mkdirs("ux0:user/00/savedata");
 +
  	sceIoRemove(TAIHEN_SKPRX_FILE);
  	sceIoRemove(HENKAKU_SKPRX_FILE);
