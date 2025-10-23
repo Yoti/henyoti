@@ -38,7 +38,7 @@ index 73a1ea5..e4dba75 100644
  #define CONFIG_PATH "ur0:tai/henkaku_config.bin"
  #define OLD_CONFIG_PATH "ux0:temp/app_work/MLCL00001/rec/config.bin"
 -#define SPOOF_VERSION (0x3650000)
-+#define SPOOF_VERSION (0x3730000)
++#define SPOOF_VERSION (0x3740000)
  
  #endif // HENKAKU_HEADER
 diff --git a/plugin/language.h b/plugin/language.h
