@@ -1,0 +1,1 @@
+scePromoterUtilityGetResult == 0x80010002

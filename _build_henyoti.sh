@@ -13,13 +13,14 @@ rm -rf ./henkaku
 git clone --recurse-submodules https://github.com/henkaku/henkaku
 cp ./henkaku.patch ./henkaku && cd ./henkaku && git apply ./henkaku.patch && cd ..
 
-cp ./vitawiki.xyz.in ./henkaku && cd ./henkaku && git tag v11.1 && git commit -m "v11.1" && ./build.sh vitawiki.xyz.in && cd ..
+cp ./vitawiki.xyz.in ./henkaku && cd ./henkaku && git tag v11.0 && git commit -a -m "v11.1" && ./build.sh vitawiki.xyz.in && cd ..
 
 rm -rf ./go
 mkdir -p ./go/pkg/
 cp ./henkaku/output/henkaku.skprx ./go/pkg
 cp ./henkaku/output/henkaku.suprx ./go/pkg
 cp ./henkaku/output/web/exploit.html ./go
+cp ./henkaku/output/web/exploit.html ./go/index.html
 cp ./henkaku/output/web/henkaku.bin ./go
 cp ./henkaku/output/web/payload.js ./go
 cp ./taiHEN/build/taihen.skprx ./go/pkg
