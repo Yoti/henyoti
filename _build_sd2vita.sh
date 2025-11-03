@@ -13,7 +13,7 @@ rm -rf ./henkaku
 git clone --recurse-submodules https://github.com/henkaku/henkaku
 cp ./henkaku.patch ./henkaku && cd ./henkaku && git apply ./henkaku.patch && cd ..
 cp ./bootstrap.patch ./henkaku && cd ./henkaku && git apply ./bootstrap.patch && cd ..
-cp ./vitawiki.xyz.in ./henkaku && cd ./henkaku && git tag v11.1 && ./build.sh vitawiki.xyz.in && cd ..
+cp ./vitawiki.xyz.in ./henkaku && cd ./henkaku && git tag v11.1 && git commit -m "v11.1" && ./build.sh vitawiki.xyz.in && cd ..
 
 rm -rf ./tf
 mkdir -p ./tf/pkg/

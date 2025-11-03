@@ -51,6 +51,14 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# PS Vita output
+henkaku/
+taiHEN/
+go/
+go_addon/
+tf/
+tf_addon/
+
 # Random shit
 4ka4ohbaegh6uu.c
 Jookochiehai8S.h
